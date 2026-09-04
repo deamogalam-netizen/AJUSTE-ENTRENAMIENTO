@@ -1,53 +1,88 @@
 import streamlit as st
 
 def evaluar_readiness():
-    st.title("Algoritmo Híbrido de Autorregulación: HRV + Readiness")
+    st.title("Semáforo de Carga: HRV + Readiness")
     
-    # Entradas Objetivas (HRV)
-    hrv_actual = st.number_input("HRV de hoy (Ln rMSSD)", value=60.0)
-    hrv_media = st.number_input("Media HRV 7 días", value=65.0)
-    hrv_baja = hrv_actual < (hrv_media - 5) # Umbral simplificado
-    dias_hrv_baja = st.number_input("Días consecutivos con HRV baja", min_value=0, max_value=10, value=0)
+    # 1. Datos Objetivos (HRV visual de Intervals.icu)
+    st.write("**1. Variabilidad de la Frecuencia Cardíaca (HRV)**")
     
-    # Entradas Subjetivas (IRS)
-    st.write("Cuestionario de Readiness Subjetivo (1 = Muy mal, 5 = Excelente)")
-    lesion = st.slider("Ausencia de Lesión/Molestia", 1, 5, 5)
-    fatiga = st.slider("Nivel de Energía (Fatiga General)", 1, 5, 5)
-    dolor_muscular = st.slider("Ausencia de Dolor Muscular", 1, 5, 5)
+    hrv_rango = st.radio(
+        "Observa tu gráfica de HRV en Intervals.icu. ¿Dónde se sitúa la barra de hoy respecto a la zona sombreada (línea base)?", 
+        ["Dentro del rango normal (zona sombreada verde)", "Fuera del rango (por debajo o por encima)"]
+    )
     
-    irs_actual = fatiga + dolor_muscular # Simplificación del sumatorio
-    irs_previo = st.number_input("Puntuación IRS del día anterior", value=10)
-    irs_empeora = irs_actual < irs_previo
+    hrv_tendencia = st.radio(
+        "Tendencia de la HRV:", 
+        ["Mayor o igual que ayer", "Menor que ayer"]
+    )
     
-    # Reglas de Carga
-    dias_rojos = st.checkbox("¿El entrenamiento de ayer fue de intensidad ROJA (Carga Severa)?")
+    dias_hrv_baja = st.number_input(
+        "¿Cuántos días consecutivos llevas con la barra de HRV por debajo de la zona sombreada?", 
+        min_value=0, max_value=10, value=0
+    )
+    
+    # 2. Cuestionario Subjetivo (IRS)
+    st.write("**2. Índice de Readiness Subjetivo (IRS)**")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        sueno = st.selectbox("Calidad de sueño", ["Genial", "Bueno", "Promedio", "Pobre"])
+        dolor = st.selectbox("Dolor muscular (Pre-entrenamiento)", ["Bajo", "Promedio", "Alto", "Extremo"])
+        fatiga = st.selectbox("Fatiga (Pre-entrenamiento)", ["Bajo", "Promedio", "Alto", "Extremo"])
+        estres = st.selectbox("Estrés", ["Bajo", "Promedio", "Alto", "Extremo"])
+    with col2:
+        animo = st.selectbox("Estado anímico", ["Genial", "Bueno", "Aceptar", "Gruñón"])
+        motiv = st.selectbox("Motivación", ["Extremo", "Alto", "Promedio", "Bajo"])
+        lesion = st.selectbox("Lesión", ["Ninguna", "Niggle (Molestia)", "Pobre", "Lesionado"])
 
-    if st.button("Calcular Semáforo de Carga"):
+    # Diccionarios de conversión a valores numéricos (4 = Óptimo, 1 = Pésimo)
+    # Se unifican los criterios para poder sumar un IRS total
+    val_sueno = {"Genial": 4, "Bueno": 3, "Promedio": 2, "Pobre": 1}[sueno]
+    val_dolor = {"Bajo": 4, "Promedio": 3, "Alto": 2, "Extremo": 1}[dolor]
+    val_fatiga = {"Bajo": 4, "Promedio": 3, "Alto": 2, "Extremo": 1}[fatiga]
+    val_estres = {"Bajo": 4, "Promedio": 3, "Alto": 2, "Extremo": 1}[estres]
+    val_animo = {"Genial": 4, "Bueno": 3, "Aceptar": 2, "Gruñón": 1}[animo]
+    val_motiv = {"Extremo": 4, "Alto": 3, "Promedio": 2, "Bajo": 1}[motiv]
+    val_lesion = {"Ninguna": 4, "Niggle (Molestia)": 3, "Pobre": 2, "Lesionado": 1}[lesion]
+        
+    irs_actual = val_sueno + val_dolor + val_fatiga + val_estres + val_animo + val_motiv + val_lesion
+        
+    irs_previo = st.number_input("Puntuación total IRS de ayer (para calcular si empeoras)", value=20, min_value=7, max_value=28)
+    
+    # 3. Reglas de Entrenamiento
+    st.write("**3. Contexto de Entrenamiento**")
+    ayer_rojo = st.checkbox("¿El entrenamiento de ayer fue ROJO (Series Z5 / Carga Severa)?")
+
+    if st.button("Generar Semáforo Diario"):
+        # Evaluaciones lógicas
+        hrv_fuera_rango = "Fuera" in hrv_rango
+        irs_empeora = irs_actual < irs_previo
+        
         # Regla de Veto por Lesión
-        if lesion <= 2:
-            st.error("🔵 CELESTE: Veto inmediato por lesión o molestia limitante. Solo carga baja/descanso para evitar lesiones estructurales.")
+        if val_lesion <= 2: 
+            st.error("🔵 **CELESTE (Descanso):** Veto inmediato por lesión o molestia limitante. Se altera el patrón de zancada. Sesión a carga baja o descanso[cite: 1].")
             return
             
-        # Regla de 3 Días
+        # Regla de 3 Días HRV
         if dias_hrv_baja >= 3:
-            st.error("🔵 CELESTE: Alerta de 3 días con desviación de HRV a la baja. Sesión automática de descanso.")
+            st.error("🔵 **CELESTE (Descanso):** Alerta de 3 días con desviación de HRV a la baja. Sesión pasa automáticamente a descanso/baja intensidad[cite: 1].")
             return
             
-        # Matriz de Decisiones
-        if hrv_baja and irs_empeora:
-            resultado = "🔵 CELESTE: Fatiga central y sistémica combinada. Veto total de carga."
-        elif hrv_baja and not irs_empeora:
-            resultado = "🟢 VERDE: Fatiga autónoma ligera sin molestias musculares graves. Rodaje suave."
-        elif not hrv_baja and irs_empeora:
-            resultado = "🔵/🟢 CELESTE o VERDE: Regla de Veto Subjetivo. Musculatura fatigada. Prohibido series intensas."
+        # Matriz de Decisión Híbrida
+        if hrv_fuera_rango and irs_empeora:
+            decision = "🔵 **CELESTE:** Fatiga central y sistémica combinada. Veto total de carga. Solo descanso o regenerativo ligero[cite: 1]."
+        elif hrv_fuera_rango and not irs_empeora:
+            decision = "🟢 **VERDE:** Fatiga autónoma ligera. No hay molestias musculares graves. Rodaje suave sin vaciar D'[cite: 1]."
+        elif not hrv_fuera_rango and irs_empeora:
+            decision = "🔵/🟢 **CELESTE o VERDE:** ¡REGLA DE VETO SUBJETIVO! Musculatura fatigada o estrés mental. Prohibido Amarillo/Rojo[cite: 1]."
         else:
-            resultado = "🟡/🔴 AMARILLO o ROJO: Sincronización perfecta. Atleta al 100% para series intensas."
+            decision = "🟡/🔴 **AMARILLO o ROJO:** Sincronización perfecta. El atleta está al 100% para realizar series intensas y vaciar la reserva D'[cite: 1]."
             
-        # Regla No Dobles Rojas
-        if dias_rojos and ("ROJO" in resultado):
-            st.warning("🟡 AMARILLO: Estrictamente prohibido realizar dos entrenamientos ROJOS consecutivos. Se reduce la intensidad de hoy.")
+        # Regla No dobles rojas
+        if ayer_rojo and ("AMARILLO o ROJO" in decision):
+            st.warning("🟡 **AMARILLO:** Por la regla de 'No Dobles Rojas', queda estrictamente prohibido realizar dos entrenamientos de intensidad ROJA consecutivos[cite: 1].")
         else:
-            st.success(resultado)
+            st.success(decision)
 
 if __name__ == "__main__":
     evaluar_readiness()
