@@ -63,7 +63,7 @@ def evaluar_readiness():
     with col7:
         ayer_rojo = st.checkbox("¿Ayer hiciste un entreno ROJO (Series Z5)?")
     with col8:
-        dos_amarillos = st.checkbox("¿Llevas 2 días consecutivos de entrenamiento AMARILLO (Z3-Z4)?")
+        dos_amarillos = st.checkbox("¿Llevas 2 días consecutivos de entrenamiento AMARILLO o AMARILLO-ROJO?")
 
     if st.button("Generar Semáforo Diario"):
         irs_empeora = sensacion_general == "Peor"
