@@ -1,7 +1,7 @@
 import streamlit as st
 
 def evaluar_readiness():
-    st.title("🔴/🟡/🟢 Semáforo de Carga entrenamiento")
+    st.title("🚦 Semáforo de Carga entrenamiento")
     
     st.write("---")
     
