@@ -33,21 +33,16 @@ def evaluar_readiness():
     with col2:
         animo = st.selectbox("Estado anímico", ["Genial", "Bueno", "Aceptar", "Gruñón"])
         motiv = st.selectbox("Motivación", ["Extremo", "Alto", "Promedio", "Bajo"])
-        lesion = st.selectbox("Lesión", ["Ninguna", "Niggle (Molestia)", "Pobre", "Lesionado"])
+        lesion = st.selectbox("Lesión", ["Ninguna", "Molestia", "Pobre", "Lesionado"])
 
-    # Diccionarios de conversión a valores numéricos (4 = Óptimo, 1 = Pésimo)
-    # Se unifican los criterios para poder sumar un IRS total
-    val_sueno = {"Genial": 4, "Bueno": 3, "Promedio": 2, "Pobre": 1}[sueno]
-    val_dolor = {"Bajo": 4, "Promedio": 3, "Alto": 2, "Extremo": 1}[dolor]
-    val_fatiga = {"Bajo": 4, "Promedio": 3, "Alto": 2, "Extremo": 1}[fatiga]
-    val_estres = {"Bajo": 4, "Promedio": 3, "Alto": 2, "Extremo": 1}[estres]
-    val_animo = {"Genial": 4, "Bueno": 3, "Aceptar": 2, "Gruñón": 1}[animo]
-    val_motiv = {"Extremo": 4, "Alto": 3, "Promedio": 2, "Bajo": 1}[motiv]
-    val_lesion = {"Ninguna": 4, "Niggle (Molestia)": 3, "Pobre": 2, "Lesionado": 1}[lesion]
+    # Diccionarios de conversión para la regla de veto estructural por lesión
+    val_lesion = {"Ninguna": 4, "Molestia": 3, "Pobre": 2, "Lesionado": 1}[lesion]
         
-    irs_actual = val_sueno + val_dolor + val_fatiga + val_estres + val_animo + val_motiv + val_lesion
-        
-    irs_previo = st.number_input("Puntuación total IRS de ayer (para calcular si empeoras)", value=20, min_value=7, max_value=28)
+    st.write("**Tendencia Subjetiva**")
+    sensacion_general = st.radio(
+        "Sensación general, ¿te encuentras igual, peor o mejor que ayer?", 
+        ["Mejor", "Igual", "Peor"]
+    )
     
     # 3. Reglas de Entrenamiento
     st.write("**3. Contexto de Entrenamiento**")
@@ -56,7 +51,7 @@ def evaluar_readiness():
     if st.button("Generar Semáforo Diario"):
         # Evaluaciones lógicas
         hrv_fuera_rango = "Fuera" in hrv_rango
-        irs_empeora = irs_actual < irs_previo
+        irs_empeora = sensacion_general == "Peor"
         
         # Regla de Veto por Lesión
         if val_lesion <= 2: 
@@ -74,13 +69,13 @@ def evaluar_readiness():
         elif hrv_fuera_rango and not irs_empeora:
             decision = "🟢 **VERDE:** Fatiga autónoma ligera. No hay molestias musculares graves. Rodaje suave sin vaciar D'[cite: 1]."
         elif not hrv_fuera_rango and irs_empeora:
-            decision = "🔵/🟢 **CELESTE o VERDE:** ¡REGLA DE VETO SUBJETIVO! Musculatura fatigada o estrés mental. Prohibido Amarillo/Rojo[cite: 1]."
+            decision = "🔵/🟢 **CELESTE o VERDE:** ¡REGLA DE VETO SUBJETIVO! Musculatura fatigada o estrés mental. Prohibido Amarillo/Rojo. Solo carga regenerativa o ligera[cite: 1]."
         else:
             decision = "🟡/🔴 **AMARILLO o ROJO:** Sincronización perfecta. El atleta está al 100% para realizar series intensas y vaciar la reserva D'[cite: 1]."
             
         # Regla No dobles rojas
         if ayer_rojo and ("AMARILLO o ROJO" in decision):
-            st.warning("🟡 **AMARILLO:** Por la regla de 'No Dobles Rojas', queda estrictamente prohibido realizar dos entrenamientos de intensidad ROJA consecutivos[cite: 1].")
+            st.warning("🟡 **AMARILLO:** Por la regla de 'No Dobles Rojas', queda estrictamente prohibido realizar dos entrenamientos de intensidad ROJA en días consecutivos[cite: 1].")
         else:
             st.success(decision)
 
