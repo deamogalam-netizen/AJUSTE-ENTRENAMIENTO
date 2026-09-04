@@ -28,7 +28,7 @@ def evaluar_readiness():
     with col5:
         estres = st.selectbox("Estrés psicosocial", ["Bajo", "Promedio", "Alto", "Extremo"])
     with col6:
-        animo = st.selectbox("Estado anímico", ["Genial", "Bueno", "Aceptar", "Gruñón"])
+        animo = st.selectbox("Estado anímico", ["Genial", "Bueno", "Aceptable", "Negativo"])
 
     st.write("**Tendencia Global del IRS (Máx 28 pts)**")
     sensacion_general = st.radio(
