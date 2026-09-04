@@ -6,12 +6,12 @@ def evaluar_readiness():
     st.write("---")
     
     # 1. FILTRO ESTRUCTURAL (Daño tisular)
-    st.write("### Nivel 1: Integridad Estructural")
+    st.write("**Nivel 1: Integridad Estructural**")
     lesion = st.selectbox("Lesión / Molestia Articular", ["Ninguna", "Molestia", "Pobre", "Lesionado"])
     val_lesion = {"Ninguna": 4, "Molestia": 3, "Pobre": 2, "Lesionado": 1}[lesion]
     
     # 2. FILTRO PERIFÉRICO (Recuperación metabólica y muscular)
-    st.write("### Nivel 2: Recuperación Periférica")
+    st.write("**Nivel 2: Recuperación Periférica**")
     col1, col2, col3 = st.columns(3)
     with col1:
         sueno = st.selectbox("Calidad de sueño", ["Genial", "Bueno", "Promedio", "Pobre"])
@@ -21,7 +21,7 @@ def evaluar_readiness():
         fatiga = st.selectbox("Fatiga sistémica", ["Bajo", "Promedio", "Alto", "Extremo"])
 
     # 3. FILTRO CENTRAL (Carga alostática y predisposición neuroendocrina)
-    st.write("### Nivel 3: Predisposición Central")
+    st.write("**Nivel 3: Predisposición Central**")
     col4, col5, col6 = st.columns(3)
     with col4:
         motiv = st.selectbox("Motivación", ["Extremo", "Alto", "Promedio", "Bajo"])
@@ -37,7 +37,7 @@ def evaluar_readiness():
     )
     
     # 4. FILTRO FISIOLÓGICO OBJETIVO (HRV / FCR)
-    st.write("### Nivel 4: Marcador Fisiológico Objetivo")
+    st.write("**Nivel 4: Marcador Fisiológico Objetivo**")
     tipo_medicion = st.radio(
         "Selecciona tu método de monitorización de hoy:",
         ["Variabilidad de la Frecuencia Cardíaca (HRV)", "Frecuencia Cardíaca en Reposo (FCR)", "Ninguno (Solo evaluación subjetiva)"]
@@ -58,12 +58,12 @@ def evaluar_readiness():
     
     # 5. CONTEXTO DE CARGA AGUDA PREVIA
     st.write("---")
-    st.write("### Nivel 5: Modulación por Carga Aguda Previa")
+    st.write("**Nivel 5: Modulación por Carga Aguda Previa**")
     col7, col8 = st.columns(2)
     with col7:
         ayer_rojo = st.checkbox("¿Ayer hiciste un entreno ROJO (Series Z5)?")
     with col8:
-        dias_amarillos = st.number_input("Días consecutivos recientes en intensidad AMARILLA (Z3-Z4):", min_value=0, max_value=5, value=0)
+        dos_amarillos = st.checkbox("¿Llevas 2 días consecutivos de entrenamiento AMARILLO (Z3-Z4)?")
 
     if st.button("Generar Semáforo Diario"):
         irs_empeora = sensacion_general == "Peor"
@@ -97,7 +97,7 @@ def evaluar_readiness():
         # 4. Restricciones Finales por Historial de Carga
         if ayer_rojo and ("ROJO" in decision):
             st.warning("🟡/🟢/🔵 **AMARILLO, VERDE, CELESTE o DESCANSO:** Por la regla de 'No Dobles Rojas', queda prohibido realizar dos entrenamientos ROJOS en días consecutivos[cite: 1, 3]. Intensidad máxima permitida hoy: Amarilla.")
-        elif dias_amarillos >= 2 and ("ROJO" in decision or "AMARILLO" in decision):
+        elif dos_amarillos and ("ROJO" in decision or "AMARILLO" in decision):
             st.warning("🟢/🔵 **VERDE, CELESTE o DESCANSO:** Prevención de acumulación de carga. Tras 2 sesiones consecutivas de intensidad AMARILLA, es obligatorio descender la intensidad para garantizar la asimilación metabólica y evitar la fatiga simpática. Intensidad máxima permitida hoy: Verde.")
         else:
             st.success(decision)
