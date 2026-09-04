@@ -60,22 +60,22 @@ def evaluar_readiness():
             
         # Regla de 3 Días HRV
         if dias_hrv_baja >= 3:
-            st.error("🔵 **CELESTE (Descanso):** Alerta de 3 días con desviación de HRV a la baja. Sesión pasa automáticamente a descanso/baja intensidad[cite: 1].")
+            st.error("🔵 **CELESTE (Descanso):** Alerta de 3 días con desviación de HRV a la baja. La sesión pasa automáticamente a descanso o baja intensidad[cite: 1].")
             return
             
-        # Matriz de Decisión Híbrida
+        # Matriz de Decisión Híbrida (indicando siempre el techo máximo y las opciones inferiores)
         if hrv_fuera_rango and irs_empeora:
-            decision = "🔵 **CELESTE:** Fatiga central y sistémica combinada. Veto total de carga. Solo descanso o regenerativo ligero[cite: 1]."
+            decision = "🔵 **CELESTE o DESCANSO:** Fatiga central y sistémica combinada. Veto total de carga. Solo descanso o regenerativo ligero[cite: 1]."
         elif hrv_fuera_rango and not irs_empeora:
-            decision = "🟢 **VERDE:** Fatiga autónoma ligera. No hay molestias musculares graves. Rodaje suave sin vaciar D'[cite: 1]."
+            decision = "🟢/🔵 **VERDE, CELESTE o DESCANSO:** Fatiga autónoma ligera. No hay molestias musculares graves. Como máximo un rodaje suave sin vaciar D'[cite: 1]."
         elif not hrv_fuera_rango and irs_empeora:
-            decision = "🔵/🟢 **CELESTE o VERDE:** ¡REGLA DE VETO SUBJETIVO! Musculatura fatigada o estrés mental. Prohibido Amarillo/Rojo. Solo carga regenerativa o ligera[cite: 1]."
+            decision = "🟢/🔵 **VERDE, CELESTE o DESCANSO:** ¡REGLA DE VETO SUBJETIVO! Musculatura fatigada o estrés mental. Prohibido Amarillo/Rojo. Carga máxima permitida: regenerativa o ligera[cite: 1]."
         else:
-            decision = "🟡/🔴 **AMARILLO o ROJO:** Sincronización perfecta. El atleta está al 100% para realizar series intensas y vaciar la reserva D'[cite: 1]."
+            decision = "🔴/🟡/🟢/🔵 **ROJO, AMARILLO, VERDE, CELESTE o DESCANSO:** Sincronización perfecta. El atleta está al 100% para realizar series intensas y vaciar la reserva D' (pudiendo elegir cualquier intensidad inferior)[cite: 1]."
             
         # Regla No dobles rojas
-        if ayer_rojo and ("AMARILLO o ROJO" in decision):
-            st.warning("🟡 **AMARILLO:** Por la regla de 'No Dobles Rojas', queda estrictamente prohibido realizar dos entrenamientos de intensidad ROJA en días consecutivos[cite: 1].")
+        if ayer_rojo and ("ROJO" in decision):
+            st.warning("🟡/🟢/🔵 **AMARILLO, VERDE, CELESTE o DESCANSO:** Por la regla de 'No Dobles Rojas', queda estrictamente prohibido realizar dos entrenamientos de intensidad ROJA en días consecutivos[cite: 1]. La intensidad máxima permitida hoy es Amarilla, pudiendo optar por sesiones más suaves (Verde, Celeste o Descanso).")
         else:
             st.success(decision)
 
