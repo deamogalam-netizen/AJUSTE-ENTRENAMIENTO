@@ -56,15 +56,21 @@ def evaluar_readiness():
         dias_alerta = st.number_input("Días consecutivos con FCR elevada:", min_value=0, max_value=10, value=0)
         marcador_alterado = "Elevada" in fcr_rango
     
+    # 5. CONTEXTO DE CARGA AGUDA PREVIA
     st.write("---")
-    ayer_rojo = st.checkbox("¿El entrenamiento de ayer fue ROJO (Series Z5 / Carga Severa)?")
+    st.write("### Nivel 5: Modulación por Carga Aguda Previa")
+    col7, col8 = st.columns(2)
+    with col7:
+        ayer_rojo = st.checkbox("¿Ayer hiciste un entreno ROJO (Series Z5)?")
+    with col8:
+        dias_amarillos = st.number_input("Días consecutivos recientes en intensidad AMARILLA (Z3-Z4):", min_value=0, max_value=5, value=0)
 
     if st.button("Generar Semáforo Diario"):
         irs_empeora = sensacion_general == "Peor"
         
         # 1. Veto Estructural
         if val_lesion <= 2: 
-            st.error("🔵 **CELESTE (Descanso):** Veto inmediato por lesión o molestia limitante. Se altera el patrón de zancada. Sesión a carga baja o descanso.")
+            st.error("🔵 **CELESTE (Descanso):** Veto inmediato por lesión o molestia limitante. Se altera el patrón de zancada. Sesión a carga baja o descanso[cite: 1].")
             return
             
         # 2. Veto Fisiológico Sostenido
@@ -72,25 +78,27 @@ def evaluar_readiness():
             st.error(f"🔵 **CELESTE (Descanso):** Alerta de 3 días con desviación en {tipo_medicion}. La sesión pasa automáticamente a descanso o baja intensidad[cite: 1, 3].")
             return
             
-        # 3. Matriz de Decisión
+        # 3. Matriz de Decisión Base
         if tipo_medicion == "Ninguno (Solo evaluación subjetiva)":
             if irs_empeora:
-                decision = "🟢/🔵 **VERDE, CELESTE o DESCANSO:** ¡REGLA DE VETO SUBJETIVO! Musculatura fatigada o estrés mental. Prohibido Amarillo/Rojo. Carga máxima permitida: regenerativa o ligera."
+                decision = "🟢/🔵 **VERDE, CELESTE o DESCANSO:** ¡REGLA DE VETO SUBJETIVO! Musculatura fatigada o estrés mental. Prohibido Amarillo/Rojo. Carga máxima permitida: regenerativa o ligera[cite: 1]."
             else:
                 decision = "🔴/🟡/🟢/🔵 **ROJO, AMARILLO, VERDE, CELESTE o DESCANSO:** Predisposición subjetiva óptima. Atleta al 100% para realizar series intensas y vaciar reserva D'[cite: 1]."
         else:
             if marcador_alterado and irs_empeora:
                 decision = "🔵 **CELESTE o DESCANSO:** Fatiga sistémica y fisiológica combinada. Veto total de carga. Solo descanso o regenerativo ligero[cite: 1, 3]."
             elif marcador_alterado and not irs_empeora:
-                decision = "🟢/🔵 **VERDE, CELESTE o DESCANSO:** Alteración fisiológica (HRV/FCR) sin molestias musculares graves. Como máximo un rodaje suave sin vaciar D'[cite: 1, 3]."
+                decision = "🟢/🔵 **VERDE, CELESTE o DESCANSO:** Alteración fisiológica sin molestias musculares graves. Como máximo un rodaje suave sin vaciar D'[cite: 1, 3]."
             elif not marcador_alterado and irs_empeora:
                 decision = "🟢/🔵 **VERDE, CELESTE o DESCANSO:** ¡REGLA DE VETO SUBJETIVO! Signos vitales normales, pero musculatura fatigada o estrés mental. Prohibido Amarillo/Rojo[cite: 1]."
             else:
                 decision = "🔴/🟡/🟢/🔵 **ROJO, AMARILLO, VERDE, CELESTE o DESCANSO:** Sincronización perfecta. Atleta al 100% para realizar series intensas[cite: 1, 3]."
             
-        # 4. Modulación por Carga Aguda Previa
+        # 4. Restricciones Finales por Historial de Carga
         if ayer_rojo and ("ROJO" in decision):
             st.warning("🟡/🟢/🔵 **AMARILLO, VERDE, CELESTE o DESCANSO:** Por la regla de 'No Dobles Rojas', queda prohibido realizar dos entrenamientos ROJOS en días consecutivos[cite: 1, 3]. Intensidad máxima permitida hoy: Amarilla.")
+        elif dias_amarillos >= 2 and ("ROJO" in decision or "AMARILLO" in decision):
+            st.warning("🟢/🔵 **VERDE, CELESTE o DESCANSO:** Prevención de acumulación de carga. Tras 2 sesiones consecutivas de intensidad AMARILLA, es obligatorio descender la intensidad para garantizar la asimilación metabólica y evitar la fatiga simpática. Intensidad máxima permitida hoy: Verde.")
         else:
             st.success(decision)
 
