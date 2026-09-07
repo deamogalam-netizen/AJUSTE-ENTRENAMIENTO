@@ -1,7 +1,7 @@
 import streamlit as st
 
 def evaluar_readiness():
-    st.title("🚦 Autocontrol Carga entrenamiento")
+    st.title("Semáforo de Carga: IRS + Marcadores Fisiológicos")
     
     st.write("---")
     
@@ -28,7 +28,7 @@ def evaluar_readiness():
     with col5:
         estres = st.selectbox("Estrés psicosocial", ["Bajo", "Promedio", "Alto", "Extremo"])
     with col6:
-        animo = st.selectbox("Estado anímico", ["Genial", "Bueno", "Aceptable", "Negativo"])
+        animo = st.selectbox("Estado anímico", ["Genial", "Bueno", "Aceptar", "Gruñón"])
 
     st.write("**Tendencia Global del IRS (Máx 28 pts)**")
     sensacion_general = st.radio(
@@ -63,7 +63,7 @@ def evaluar_readiness():
     with col7:
         ayer_rojo = st.checkbox("¿Ayer hiciste un entreno ROJO (Series Z5)?")
     with col8:
-        dos_amarillos = st.checkbox("¿Llevas 2 días consecutivos AMARILLOS o AMARILLO-ROJO?")
+        dos_amarillos = st.checkbox("¿Llevas 2 días consecutivos de entrenamiento AMARILLO o AMARILLO-ROJO?")
 
     if st.button("Generar Semáforo Diario"):
         irs_empeora = sensacion_general == "Peor"
@@ -94,12 +94,15 @@ def evaluar_readiness():
             else:
                 decision = "🔴/🟡/🟢/🔵 **ROJO, AMARILLO, VERDE, CELESTE o DESCANSO:** Sincronización perfecta. Atleta al 100% para realizar series intensas[cite: 1, 3]."
             
-        # 4. Restricciones Finales por Historial de Carga
-        if ayer_rojo and ("ROJO" in decision):
+        # 4. Restricciones Finales por Historial de Carga (Ordenadas por prioridad)
+        if dos_amarillos and ("ROJO" in decision or "AMARILLO" in decision):
+            # Prioridad 1: Si hay acumulación de 2 días, omite el Amarillo y fuerza Verde/Celeste
+            st.warning("🟢/🔵 **VERDE, CELESTE o DESCANSO:** Prevención de acumulación de carga. Tras 2 sesiones consecutivas en zonas altas (Amarillo/Rojo), es obligatorio descender a intensidad regenerativa o base. Intensidad máxima permitida hoy: Verde.")
+        elif ayer_rojo and ("ROJO" in decision):
+            # Prioridad 2: Si solo ayer fue Rojo, prohíbe Rojo pero permite Amarillo como máximo
             st.warning("🟡/🟢/🔵 **AMARILLO, VERDE, CELESTE o DESCANSO:** Por la regla de 'No Dobles Rojas', queda prohibido realizar dos entrenamientos ROJOS en días consecutivos[cite: 1, 3]. Intensidad máxima permitida hoy: Amarilla.")
-        elif dos_amarillos and ("ROJO" in decision or "AMARILLO" in decision):
-            st.warning("🟢/🔵 **VERDE, CELESTE o DESCANSO:** Prevención de acumulación de carga. Tras 2 sesiones consecutivas de intensidad AMARILLA, es obligatorio descender la intensidad para garantizar la asimilación metabólica y evitar la fatiga simpática. Intensidad máxima permitida hoy: Verde.")
         else:
+            # Sin restricciones adicionales
             st.success(decision)
 
 if __name__ == "__main__":
